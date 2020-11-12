@@ -16,9 +16,9 @@ spec:
   type: NodePort
   ports:
     - port: 80
-      nodePort: 32080
-      targetPort: 8080
-      name: "http"  # Istio требует явного указания протокола при определенных настройках
+      targetPort: http
+      nodePort: 31080
+      name: http  # Istio требует явного указания протокола при определенных настройках
   selector:
     app: echoserver
 
@@ -29,22 +29,50 @@ metadata:
   name: echoserver
   namespace: default
 spec:
-  replicas: 1
+  replicas: 2
   strategy:
     type: Recreate
   selector:
     matchLabels:
       app: echoserver
-      version: "1"
+      version: "v1"
   template:
     metadata:
       labels:
         app: echoserver
-        version: "1"
+        version: "v1"
     spec:
       containers:
         - name: echoserver
-          image: proxy-app
+          image: proxy-app:v1
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echoserver-v2
+  namespace: default
+spec:
+  replicas: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: echoserver
+      version: "v2"
+  template:
+    metadata:
+      labels:
+        app: echoserver
+        version: "v2"
+    spec:
+      containers:
+        - name: echoserver
+          image: proxy-app:v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
